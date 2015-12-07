@@ -31,6 +31,16 @@ class TwoDArray
     @array[x]
   end
 
+  def length
+    @array.length
+  end
+
+  def each
+    @array.each do |obj|
+      yield obj
+    end
+  end
+
   attr_accessor :array
 
   def to_s
