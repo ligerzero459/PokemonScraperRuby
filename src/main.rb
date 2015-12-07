@@ -35,11 +35,23 @@ def init_damage_taken
   damage_taken
 end
 
+def method_name
+  puts "method called for #{object_id}"
+end
+
 # Variable declarations
 previous_line = ""
 damage_taken_array = nil
 damage_table_read = false
 damage_table_count = 0
+
+level_moves_array = TwoDArray.new(0,0)
+temp_moves_array = []
+level_moves_read = false
+move_read = false
+
+hm_moves_array = TwoDArray.new(0,0)
+hm_moves_read = false
 
 # Program start
 page_source = Nokogiri::HTML(open('http://www.serebii.net/pokedex-xy/004.shtml')).to_s
@@ -56,6 +68,39 @@ page_source.each_line do |line|
     if damage_table_count == 18
       damage_table_read = false
     end
+  elsif line.include?("Generation VI Level Up")
+    level_moves_read = true
+  elsif line.include?("rowspan=\"2\"") && level_moves_read && !move_read
+    level = line.split(">")[1].split("<")[0]
+    if level == "&mdash;"
+      level = "--"
+    end
+    temp_moves_array = [level, ""]
+    move_read = true
+  elsif line.include?("attackdex") && level_moves_read && move_read
+    move = line.split(">")[2].split("<")[0]
+    temp_moves_array[1] = move
+    level_moves_array.push(temp_moves_array)
+    move_read = false
+  elsif line.include?("class=\"fooevo\">TM")
+    level_moves_read = false
+    move_read = false
+    hm_moves_read = true
+  elsif line.include?("rowspan=\"2\"") && hm_moves_read && !move_read
+    hm_tm = line.split(">")[1].split("<")[0]
+    if hm_tm == "&mdash;"
+      hm_tm = "--"
+    end
+    temp_moves_array = [hm_tm, ""]
+    move_read = true
+  elsif line.include?("attackdex") && hm_moves_read && move_read
+    move = line.split(">")[2].split("<")[0]
+    temp_moves_array[1] = move
+    hm_moves_array.push(temp_moves_array)
+    move_read = false
+  elsif line.include?("class=\"fooevo\">Egg")
+    hm_moves_read = false
+    move_read = false
   end
 
   if previous_line.include?("<b>National")
@@ -77,7 +122,3 @@ page_source.each_line do |line|
 
   previous_line = line
 end
-
-puts damage_taken_array
-puts damage_taken_array.length
-puts damage_taken_array[0].length
