@@ -34,14 +34,14 @@ class TwoDArray
   attr_accessor :array
 
   def to_s
-    string = "["
+    string = "[\n"
 
     @array.each do |items|
       string += "["
       items.each do |j|
         string += "{" + j.to_s + "}"
       end
-      string += "]"
+      string += "]\n"
     end
 
     string += "]"
