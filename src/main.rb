@@ -35,90 +35,83 @@ def init_damage_taken
   damage_taken
 end
 
-def method_name
-  puts "method called for #{object_id}"
-end
-
 # Variable declarations
 previous_line = ""
-damage_taken_array = nil
-damage_table_read = false
-damage_table_count = 0
+page_source = []
+damage_taken_array = init_damage_taken
 
 level_moves_array = TwoDArray.new(0,0)
-temp_moves_array = []
-level_moves_read = false
-move_read = false
-
 hm_moves_array = TwoDArray.new(0,0)
-hm_moves_read = false
 
 # Program start
-page_source = Nokogiri::HTML(open('http://www.serebii.net/pokedex-xy/004.shtml')).to_s
+temp_source = Nokogiri::HTML(open('http://www.serebii.net/pokedex-xy/004.shtml')).to_s
 
-page_source.each_line do |line|
-  if line.include?("<title>")
-    puts line[7,40].split(" - ")[0]
-  elsif line.include?("attackdex-xy/fairy")
-    damage_taken_array = init_damage_taken
-    damage_table_read = true
-  elsif line.include?("<td class=\"footype\">*") && damage_table_read
-    damage_taken_array[damage_table_count][1] = line[24,4].split("<")[0]
-    damage_table_count += 1
-    if damage_table_count == 18
-      damage_table_read = false
+=begin
+  Put entire page source into an array, line by line. Will allow for better
+  controlled iteration than each_line, will improve parsing
+=end
+
+temp_source.each_line do |line|
+  page_source.push(line)
+end
+
+line_number = 0
+while line_number <= page_source.length do
+  if page_source[line_number].to_s.include?('<title>')
+    puts page_source[line_number][7,40].split(' - ')[0]
+  elsif page_source[line_number].to_s.include?("<b>National")
+    line_number += 1
+    puts page_source[line_number].to_s[5, 3]
+  elsif page_source[line_number].to_s.include?("<b>Central")
+    line_number += 1
+    puts page_source[line_number].to_s[5, 3]
+  elsif page_source[line_number].to_s.include?("<b>Coastal")
+    line_number += 1
+    puts page_source[line_number].to_s[5, 3]
+  elsif page_source[line_number].to_s.include?("<b>Mountain")
+    line_number += 1
+    puts page_source[line_number].to_s[5, 3]
+  elsif page_source[line_number].to_s.include?("<b>Hoenn")
+    line_number += 1
+    puts page_source[line_number].to_s[5, 3]
+  elsif page_source[line_number].to_s.include?('attackdex-xy/fairy')                                 # Prepare to pokemon weaknesses
+    # damage_table_read = true
+    line_number += 4
+    (0..17).each do |count|
+      damage_taken_array[count][1] = page_source[line_number][24,4].to_s.split('<')[0]
+      line_number += 1
     end
-  elsif line.include?("Generation VI Level Up")
-    level_moves_read = true
-  elsif line.include?("rowspan=\"2\"") && level_moves_read && !move_read
-    level = line.split(">")[1].split("<")[0]
-    if level == "&mdash;"
-      level = "--"
+  elsif page_source[line_number].to_s.include?('Generation VI Level Up')                             # Set up to parse normal moves
+    line_number += 12
+    while !page_source[line_number].to_s.include?('<table')
+      level = page_source[line_number].split('>')[1].split('<')[0]
+      if level == '&mdash;'
+        level = '--'
+      end
+      line_number += 1
+      move = page_source[line_number].to_s.split('>')[2].to_s.split('<')[0]
+      level_moves_array.push([level, move])
+      line_number += 10
     end
-    temp_moves_array = [level, ""]
-    move_read = true
-  elsif line.include?("attackdex") && level_moves_read && move_read
-    move = line.split(">")[2].split("<")[0]
-    temp_moves_array[1] = move
-    level_moves_array.push(temp_moves_array)
-    move_read = false
-  elsif line.include?("class=\"fooevo\">TM")
-    level_moves_read = false
-    move_read = false
-    hm_moves_read = true
-  elsif line.include?("rowspan=\"2\"") && hm_moves_read && !move_read
-    hm_tm = line.split(">")[1].split("<")[0]
-    if hm_tm == "&mdash;"
-      hm_tm = "--"
+  elsif page_source[line_number].to_s.include?("class=\"fooevo\">TM")                                # Set up for TM move parsing
+    line_number += 12
+    while !page_source[line_number].to_s.include?('<table')
+      hm_tm = page_source[line_number].split('>')[1].split('<')[0]
+      if page_source[line_number].to_s.include?('<br>')
+        hm_tm += "\n" + page_source[line_number].split('>')[2].split('<')[0]
+      end
+
+      # Replace Omega and Alpha symbols
+      # Won't throw exception if they don't exist
+      hm_tm.sub!('&Omega;R&alpha;S', 'Ruby/Sapphire')
+
+      line_number += 1
+      move = page_source[line_number].to_s.split('>')[2].to_s.split('<')[0]
+      hm_moves_array.push([hm_tm, move])
+      line_number += 10
     end
-    temp_moves_array = [hm_tm, ""]
-    move_read = true
-  elsif line.include?("attackdex") && hm_moves_read && move_read
-    move = line.split(">")[2].split("<")[0]
-    temp_moves_array[1] = move
-    hm_moves_array.push(temp_moves_array)
-    move_read = false
-  elsif line.include?("class=\"fooevo\">Egg")
-    hm_moves_read = false
-    move_read = false
+  elsif page_source[line_number].to_s.include?('"class=\"fooevo\">Egg"')
+
   end
-
-  if previous_line.include?("<b>National")
-    puts previous_line
-    puts line
-  elsif previous_line.include?("<b>Central")
-    puts previous_line
-    puts line
-  elsif previous_line.include?("<b>Coastal")
-    puts previous_line
-    puts line
-  elsif previous_line.include?("<b>Mountain")
-    puts previous_line
-    puts line
-  elsif previous_line.include?("<b>Hoenn")
-    puts previous_line
-    puts line
-  end
-
-  previous_line = line
+  line_number += 1
 end
