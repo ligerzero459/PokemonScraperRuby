@@ -44,7 +44,7 @@ level_moves_array = nil
 xy_moves_array = nil
 oras_moves_array = nil
 hm_moves_array = nil
-
+egg_moves_array = nil
 
 # Program start
 temp_source = Nokogiri::HTML(open('http://www.serebii.net/pokedex-xy/183.shtml')).to_s
@@ -151,16 +151,14 @@ while line_number <= page_source.length do
     end
 
   # Pokemon egg moves
-  # TODO: Parse Egg Moves
-  elsif page_source[line_number].to_s.include?('"class=\"fooevo\">Egg"')
-
+  elsif page_source[line_number].to_s.include?("class=\"fooevo\">Egg")
+    egg_moves_array = []
+    line_number += 12
+    while !page_source[line_number].to_s.include?('<p>')
+      move = page_source[line_number].to_s.split('>')[2].to_s.split('<')[0]
+      egg_moves_array.push(move)
+      line_number += 12
+    end
   end
   line_number += 1
 end
-
-puts 'X/Y Moves'
-puts xy_moves_array.to_s + "\n"
-puts 'Omega Ruby/Alpha Sapphire Moves'
-puts oras_moves_array.to_s + "\n"
-puts 'HM Moves'
-puts hm_moves_array.to_s + "\n"
