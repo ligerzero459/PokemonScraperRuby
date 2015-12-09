@@ -159,6 +159,15 @@ while line_number <= page_source.length do
       egg_moves_array.push(move)
       line_number += 12
     end
+
+  # TODO: Add move tutor attacks
+  # TODO: Add "Transfer-Only" attacks
+  # TODO: Locations
+  # TODO: Flavor text
+  # TODO: Effort Values
+  # TODO: Gender Ratio
+  # TODO: Type
+  # TODO: All data at top of page (Classification, Height, Weight, Capture Rate, Base Egg Steps)
   end
   line_number += 1
 end
