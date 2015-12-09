@@ -38,16 +38,20 @@ end
 # Variable declarations
 previous_line = ""
 page_source = []
-damage_taken_array = init_damage_taken
 
+# Array Declarations
+# 2D Arrays
+damage_taken_array = init_damage_taken
 level_moves_array = nil
 xy_moves_array = nil
 oras_moves_array = nil
 hm_moves_array = nil
+# Normal Arrays
 egg_moves_array = nil
+move_tutor_attacks_array = nil
 
 # Program start
-temp_source = Nokogiri::HTML(open('http://www.serebii.net/pokedex-xy/183.shtml')).to_s
+temp_source = Nokogiri::HTML(open('http://www.serebii.net/pokedex-xy/274.shtml')).to_s
 
 =begin
   Put entire page source into an array, line by line. Will allow for better
@@ -161,6 +165,15 @@ while line_number <= page_source.length do
     end
 
   # TODO: Add move tutor attacks
+  elsif page_source[line_number].to_s.include?('Move Tutor Attacks</td>')
+    move_tutor_attacks_array = []
+    line_number += 11
+    while !page_source[line_number].to_s.include?('<table')
+      move = page_source[line_number].to_s.split('>')[2].to_s.split('<')[0]
+      move_tutor_attacks_array.push(move)
+      line_number += 10
+    end
+
   # TODO: Add "Transfer-Only" attacks
   # TODO: Locations
   # TODO: Flavor text
